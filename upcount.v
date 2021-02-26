@@ -1,4 +1,4 @@
-module upcount(Clear, Clock, Q, length);
+module upcount(Clear, Clock, Q);
 	input Clear, Clock;
 	output reg [1:0] Q;
 	
@@ -7,7 +7,7 @@ module upcount(Clear, Clock, Q, length);
 		else Q <= Q + 1'b1;
 endmodule
 
-module upcount_5(Clear, Clock, Q, length);
+module upcount_5(Clear, Clock, Q);
 	input Clear, Clock;
 	output reg [4:0] Q;
 	

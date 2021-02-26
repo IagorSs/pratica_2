@@ -28,7 +28,7 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	
 	// Registradores
 	wire [15:0] R0, R1, R2, R3, R4, R5, R6, R7, A, G, saidaULA;
-  wire [8:0] IR;
+	wire [8:0] IR;
 		
 	// Declare variables
 	wire [1:0] Tstep_Q;
@@ -39,6 +39,8 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 		
 	reg [0:7] regIn, regOut;
 	reg aIn, gIn, gOut, dinOut, Clear, irIn;
+	
+	wire [2:0] I;
 	
 	assign I = IR[8:6];
 	
@@ -140,7 +142,7 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	
 	multiplex mult(DIN, R0, R1, R2, R3, R4, R5, R6, R7, G, BusWires, {dinOut, regOut, gOut});
 	
-	// Aribuição aos registradores
+	// AribuiÃ§Ã£o aos registradores
 	regn reg_0(BusWires, regIn[0], Clock, R0);
 	regn reg_1(BusWires, regIn[1], Clock, R1);
 	regn reg_2(BusWires, regIn[2], Clock, R2);
@@ -151,6 +153,6 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	regn reg_7(BusWires, regIn[7], Clock, R7);
 	regn reg_A(BusWires, aIn, Clock, A);
 	regn reg_G(saidaULA, gIn, Clock, G);
-  regn_9 reg_IR(IR, irIn, Clock, DIN[15:7]);
+	regn_9 reg_IR(DIN[15:7], irIn, Clock, IR);
 	
 endmodule

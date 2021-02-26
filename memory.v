@@ -83,7 +83,7 @@ module memory (
 		altsyncram_component.address_aclr_a = "NONE",
 		altsyncram_component.clock_enable_input_a = "BYPASS",
 		altsyncram_component.clock_enable_output_a = "BYPASS",
-		altsyncram_component.init_file = "C:/Users/iagor/Desktop/memoria_init.mif",
+		altsyncram_component.init_file = "C:/versaoFinalPratica2/pratica2/pratica_2/memoria_init.mif",
 		altsyncram_component.intended_device_family = "Cyclone IV GX",
 		altsyncram_component.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
 		altsyncram_component.lpm_type = "altsyncram",

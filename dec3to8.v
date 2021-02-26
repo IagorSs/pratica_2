@@ -1,7 +1,7 @@
 module dec3to8(W, En, Y);
 	input [2:0] W;
 	input En;
-	inout reg [0:7] Y;
+	output reg [0:7] Y;
 	
 	always @(W or En) begin
 		if (En == 1) case (W)
