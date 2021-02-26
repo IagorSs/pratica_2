@@ -41,10 +41,15 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	reg aIn, gIn, gOut, dinOut, Clear, irIn;
 	
 	wire [2:0] I;
+
+    genvar waiting;
 	
 	assign I = IR[8:6];
 	
-	initial Clear = 1'b1;
+	initial begin
+        Clear = 1'b1;
+        waiting = 0;
+    end
 	
 	dec3to8 decX(IR[5:3], 1'b1, Xreg);
 	dec3to8 decY(IR[2:0], 1'b1, Yreg);
@@ -52,90 +57,95 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	upcount Tstep(Clear, Clock, Tstep_Q);
 	
 	always @(Tstep_Q or I or Xreg or Yreg) begin
-    aIn = 1'b0;
-    gIn = 1'b0;
-    irIn = 1'b0;
-    gOut = 1'b0;
-    dinOut = 1'b0;
-    
-    regIn = 8'b0;
-    regOut = 8'b0;
-    
-    Clear = 1'b1;
-    
-    if(Run) begin
-      Done = 1'b0;
-      
-      Clear = 1'b0;
-      
-      case (Tstep_Q)
-        // STEP 0
-        2'b00: irIn = 1'b1;
+        aIn = 1'b0;
+        gIn = 1'b0;
+        irIn = 1'b0;
+        gOut = 1'b0;
+        dinOut = 1'b0;
         
-        // STEP 1
-        2'b01: case(I)
-          3'b000: begin				//Instrucao mv
-              regOut = Yreg;
-              regIn = Xreg;
-              Done = 1'b1;
-              Clear = 1'b1;
-            end
-          3'b001: begin				//Instrucao mvi
-              dinOut = 1'b1;
-              regIn = Xreg;
-              Done = 1'b1;
-              Clear = 1'b1;
-            end
-          3'b010: begin				//Instrucao add
-              aIn = 1'b1;
-              regOut = Xreg;
-            end
-          3'b011: begin				//Instrucao sub
-              aIn = 1'b1;
-              regOut = Xreg; 							
-            end
-          3'b100: begin				//Instrucao or 
-              aIn = 1'b1;
-              regOut = Xreg;
-            end
-          3'b101: begin 				//Instrucao slt
-              aIn = 1'b1;
-              regOut = Xreg;
-            end
-          3'b110: begin 				//Instrucao sll
-              aIn = 1'b1;
-              regOut = Xreg;
-            end
-          3'b111: begin				//Instrucao srl
-              aIn = 1'b1;
-              regOut = Xreg;
-            end
-        endcase
+        regIn = 8'b0;
+        regOut = 8'b0;
         
-        // STEP 2
-        2'b10: if(I > 3'b001) begin
-            gIn = 1'b1;
-            regOut = Yreg;
+        Clear = 1'b1;
+        
+        if(Run) begin
+            Done = 1'b0;
             
-            case(I)
-              3'b010: sinal_ULA = 3'b000;
-              3'b011: sinal_ULA = 3'b001;
-              3'b100: sinal_ULA = 3'b010;
-              3'b101: sinal_ULA = 3'b011;
-              3'b110: sinal_ULA = 3'b100;
-              3'b111: sinal_ULA = 3'b101;
+            Clear = 1'b0;
+            
+            case (Tstep_Q)
+                // STEP 0
+                2'b00: irIn = 1'b1;
+                
+                // STEP 1
+                2'b01: begin 
+                    if (waiting) begin
+                        dinOut = 1'b1;
+                        regIn = Xreg;
+                        Done = 1'b1;
+                        Clear = 1'b1;
+                        waiting = 0;
+                    end
+                    else case(I)
+                        3'b000: begin				//Instrucao mv
+                            regOut = Yreg;
+                            regIn = Xreg;
+                            Done = 1'b1;
+                            Clear = 1'b1;
+                            end
+                        3'b001: waiting = 1;		//Instrucao mvi
+                        3'b010: begin				//Instrucao add
+                            aIn = 1'b1;
+                            regOut = Xreg;
+                            end
+                        3'b011: begin				//Instrucao sub
+                            aIn = 1'b1;
+                            regOut = Xreg; 							
+                            end
+                        3'b100: begin				//Instrucao or 
+                            aIn = 1'b1;
+                            regOut = Xreg;
+                            end
+                        3'b101: begin 				//Instrucao slt
+                            aIn = 1'b1;
+                            regOut = Xreg;
+                            end
+                        3'b110: begin 				//Instrucao sll
+                            aIn = 1'b1;
+                            regOut = Xreg;
+                            end
+                        3'b111: begin				//Instrucao srl
+                            aIn = 1'b1;
+                            regOut = Xreg;
+                            end
+                    endcase
+                end
+                
+                // STEP 2
+                2'b10: if(I > 3'b001) begin
+                    gIn = 1'b1;
+                    regOut = Yreg;
+                    
+                    case(I)
+                        3'b010: sinal_ULA = 3'b000;
+                        3'b011: sinal_ULA = 3'b001;
+                        3'b100: sinal_ULA = 3'b010;
+                        3'b101: sinal_ULA = 3'b011;
+                        3'b110: sinal_ULA = 3'b100;
+                        3'b111: sinal_ULA = 3'b101;
+                    endcase
+                end
+                
+                // STEP 3
+                2'b11: begin if(I > 3'b001) begin
+                        gOut = 1'b1;
+                        regIn = Xreg;
+                    end
+                    Done = 1'b1;
+                    Clear = 1'b1;
+                end
             endcase
-          end
-        
-        // STEP 3
-        2'b11: if(I > 3'b001) begin
-            gOut = 1'b1;
-            regIn = Xreg;
-            Done = 1'b1;
-            Clear = 1'b1;
-          end
-      endcase
-    end
+        end
 	end
 	
 	ULA moduloULA(sinal_ULA, A, BusWires, saidaULA);
