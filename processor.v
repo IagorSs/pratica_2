@@ -42,7 +42,7 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	
 	wire [2:0] I;
 
-    genvar waiting;
+   reg waiting;
 	
 	assign I = IR[8:6];
 	

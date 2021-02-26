@@ -4,6 +4,7 @@ module pratica_2(MClock, PClock, Resetn, Run, Bus, Done);
 	output Done;
 
 	wire [4:0] n;
+	
 	wire [15:0] memoryOut;
 	
 	upcount_5 count(Resetn, MClock, n);
