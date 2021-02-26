@@ -1,4 +1,3 @@
-// Dec 3 to 8
 module dec3to8(W, En, Y);
 	input [2:0] W;
 	input En;
