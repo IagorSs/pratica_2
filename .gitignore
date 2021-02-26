@@ -3,3 +3,4 @@
 !*.v
 !*.mif
 !.gitignore
+!terminal_modelsim

@@ -1,0 +1,4 @@
+force -freeze sim:/pratica_2/Resetn 1 0, 0 {50 ps} -r 10000
+force -freeze sim:/pratica_2/Run 1 0
+force -freeze sim:/pratica_2/MClock 1 0, 0 {200 ps} -r 400
+force -freeze sim:/pratica_2/PClock 1 10, 0 {60 ps} -r 100
