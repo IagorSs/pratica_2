@@ -2,3 +2,15 @@ force -freeze sim:/pratica_2/Resetn 1 0, 0 {50 ps} -r 10000
 force -freeze sim:/pratica_2/Run 1 0
 force -freeze sim:/pratica_2/MClock 1 0, 0 {200 ps} -r 400
 force -freeze sim:/pratica_2/PClock 1 10, 0 {60 ps} -r 100
+add wave -position end  sim:/pratica_2/MClock
+add wave -position end  sim:/pratica_2/PClock
+add wave -position end  sim:/pratica_2/Resetn
+add wave -position end  sim:/pratica_2/Run
+add wave -position end  sim:/pratica_2/Done
+add wave -position end  sim:/pratica_2/n
+add wave -position end  sim:/pratica_2/memoryOut
+add wave -position end  sim:/pratica_2/Bus
+add wave -position end  sim:/pratica_2/proc/reg_0/Q
+add wave -position end  sim:/pratica_2/proc/reg_1/Q
+add wave -position end  sim:/pratica_2/proc/reg_2/Q
+add wave -position end  sim:/pratica_2/proc/reg_3/Q
