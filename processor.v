@@ -1,23 +1,23 @@
-module regn(R, Rin, Clock, Q);
+module regn(R, Rin, Clock, Q, set_0);
 	parameter n = 16;
 	input [n-1:0] R;
-	input Rin, Clock;
+	input Rin, Clock, set_0;
 	output reg [n-1:0] Q;
 	
 	always @(posedge Clock) 
-		if (Rin) 
-			Q = R;
+		if (set_0) Q = 16'b0;
+		else if (Rin) Q = R;
 endmodule
 
-module regn_9(R, Rin, Clock, Q);
+module regn_9(R, Rin, Clock, Q, set_0);
 	parameter n = 9;
 	input [n-1:0] R;
-	input Rin, Clock;
+	input Rin, Clock, set_0;
 	output reg [n-1:0] Q;
 	
-	always @(posedge Clock) 
-		if (Rin) 
-			Q = R;
+	always @(posedge Clock)
+        if (set_0) Q = 9'b0;
+		else if (Rin) Q = R;
 endmodule
 
 module processor(DIN, Resetn, Clock, Run, Done, BusWires);
@@ -42,13 +42,14 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	
 	wire [2:0] I;
 
-   reg waiting;
+    reg waiting;
 	
 	assign I = IR[8:6];
 	
 	initial begin
         Clear = 1'b1;
         waiting = 0;
+        Done = 1'b0;
     end
 	
 	dec3to8 decX(IR[5:3], 1'b1, Xreg);
@@ -57,33 +58,32 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	upcount Tstep(Clear, Clock, Tstep_Q);
 	
 	always @(Tstep_Q or I or Xreg or Yreg) begin
+        if(~waiting) begin
+            regIn = 8'b0;
+            dinOut = 1'b0;
+        end
+
         aIn = 1'b0;
         gIn = 1'b0;
         irIn = 1'b0;
         gOut = 1'b0;
-        dinOut = 1'b0;
         
-        regIn = 8'b0;
         regOut = 8'b0;
         
-        Clear = 1'b1;
-        
         if(Run) begin
-            Done = 1'b0;
-            
-            Clear = 1'b0;
             
             case (Tstep_Q)
                 // STEP 0
-                2'b00: irIn = 1'b1;
+                2'b00: begin
+                    irIn = 1'b1;
+                    Done = 1'b0;
+                    Clear = 1'b0;
+                end
                 
                 // STEP 1
                 2'b01: begin 
                     if (waiting) begin
-                        dinOut = 1'b1;
-                        regIn = Xreg;
                         Done = 1'b1;
-                        Clear = 1'b1;
                         waiting = 0;
                     end
                     else case(I)
@@ -91,9 +91,12 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
                             regOut = Yreg;
                             regIn = Xreg;
                             Done = 1'b1;
-                            Clear = 1'b1;
                             end
-                        3'b001: waiting = 1;		//Instrucao mvi
+                        3'b001: begin               //Instrucao mvi
+                                waiting = 1;
+                                regIn = Xreg;
+                                dinOut = 1'b1;
+                            end
                         3'b010: begin				//Instrucao add
                             aIn = 1'b1;
                             regOut = Xreg;
@@ -123,16 +126,16 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
                 
                 // STEP 2
                 2'b10: if(I > 3'b001) begin
-                    gIn = 1'b1;
-                    regOut = Yreg;
-                    
-                    case(I)
-                        3'b010: sinal_ULA = 3'b000;
-                        3'b011: sinal_ULA = 3'b001;
-                        3'b100: sinal_ULA = 3'b010;
-                        3'b101: sinal_ULA = 3'b011;
-                        3'b110: sinal_ULA = 3'b100;
-                        3'b111: sinal_ULA = 3'b101;
+                        gIn = 1'b1;
+                        regOut = Yreg;
+                        
+                        case(I)
+                            3'b010: sinal_ULA = 3'b000;
+                            3'b011: sinal_ULA = 3'b001;
+                            3'b100: sinal_ULA = 3'b010;
+                            3'b101: sinal_ULA = 3'b011;
+                            3'b110: sinal_ULA = 3'b100;
+                            3'b111: sinal_ULA = 3'b101;
                     endcase
                 end
                 
@@ -140,8 +143,8 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
                 2'b11: begin if(I > 3'b001) begin
                         gOut = 1'b1;
                         regIn = Xreg;
+                        Done = 1'b1;
                     end
-                    Done = 1'b1;
                     Clear = 1'b1;
                 end
             endcase
@@ -152,17 +155,17 @@ module processor(DIN, Resetn, Clock, Run, Done, BusWires);
 	
 	multiplex mult(DIN, R0, R1, R2, R3, R4, R5, R6, R7, G, BusWires, {dinOut, regOut, gOut});
 	
-	// AribuiÃ§Ã£o aos registradores
-	regn reg_0(BusWires, regIn[0], Clock, R0);
-	regn reg_1(BusWires, regIn[1], Clock, R1);
-	regn reg_2(BusWires, regIn[2], Clock, R2);
-	regn reg_3(BusWires, regIn[3], Clock, R3);
-	regn reg_4(BusWires, regIn[4], Clock, R4);
-	regn reg_5(BusWires, regIn[5], Clock, R5);
-	regn reg_6(BusWires, regIn[6], Clock, R6);
-	regn reg_7(BusWires, regIn[7], Clock, R7);
-	regn reg_A(BusWires, aIn, Clock, A);
-	regn reg_G(saidaULA, gIn, Clock, G);
-	regn_9 reg_IR(DIN[15:7], irIn, Clock, IR);
+	// Aribuicao dos registradores
+	regn reg_0(BusWires, regIn[0], Clock, R0, Resetn);
+	regn reg_1(BusWires, regIn[1], Clock, R1, Resetn);
+	regn reg_2(BusWires, regIn[2], Clock, R2, Resetn);
+	regn reg_3(BusWires, regIn[3], Clock, R3, Resetn);
+	regn reg_4(BusWires, regIn[4], Clock, R4, Resetn);
+	regn reg_5(BusWires, regIn[5], Clock, R5, Resetn);
+	regn reg_6(BusWires, regIn[6], Clock, R6, Resetn);
+	regn reg_7(BusWires, regIn[7], Clock, R7, Resetn);
+	regn reg_A(BusWires, aIn, Clock, A, Resetn);
+	regn reg_G(saidaULA, gIn, Clock, G, Resetn);
+	regn_9 reg_IR(DIN[15:7], irIn, Clock, IR, Resetn);
 	
 endmodule

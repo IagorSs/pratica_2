@@ -12,6 +12,6 @@ module upcount_5(Clear, Clock, Q);
 	output reg [4:0] Q;
 	
 	always @(posedge Clock)
-		if (Clear) Q <= 2'b0;
+		if (Clear) Q <= 5'b0;
 		else Q <= Q + 1'b1;
 endmodule
